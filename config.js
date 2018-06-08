@@ -11,5 +11,8 @@ module.exports = {
         server_url: process.env.RINGCENTRAL_SERVER_URL,
         client_id: process.env.RINGCENTRAL_CLIENT_ID,
         client_secret: process.env.RINGCENTRAL_CLIENT_SECRET
+    },
+    intercom_credentials: {
+        token: process.env.INTERCOM_TOKEN
     }
 };
