@@ -1,6 +1,8 @@
 const SDK = require('ringcentral');
 const config = require('../config');
 
+const intercomService = require('./intercom.services');
+
 const rcsdk = new SDK({
     server: config.ringcentral_credentials.server_url,
     appKey: config.ringcentral_credentials.client_id,
@@ -9,11 +11,9 @@ const rcsdk = new SDK({
 
 const platform = rcsdk.platform();
 
-const initRingcentral = () => {
+exports.initRingcentral = () => {
     ringcentralLogin();
 };
-
-exports.initRingcentral = initRingcentral;
 
 const ringcentralLogin = () => {
     platform.login({
@@ -87,7 +87,7 @@ const startSubscription = (eventFilterPayload) => {
             eventFilters: eventFilterPayload,
             deliveryMode: {
                 transportType: config.ringcentral_credentials.delivery_mode_transport_type,
-                address: config.ringcentral_credentials.delivery_mode_address
+                address: config.ringcentral_credentials.delivery_mode_address// + '?auth_token=' + config.ringcentral_credentials.webhook_token
             }
         })
         .then(function() {
@@ -117,7 +117,7 @@ const generateInstantMessageEventFilter = (item) => {
     }
 };
 
-const inboundRequest = (req, res) => {
+exports.inboundRequest = (req, res) => {
     var method = req.method;
     var reqUrl = req.url;
     var headers = req.headers;
@@ -134,8 +134,7 @@ const inboundRequest = (req, res) => {
         } else {
             console.log('Webhook data received');
             res.send(req.body);
+            intercomService.sentToIntercom(req.body);
         }
     }
 };
-
-exports.inboundRequest = inboundRequest;
