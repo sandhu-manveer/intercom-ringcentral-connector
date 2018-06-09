@@ -1,5 +1,7 @@
 'use strict';
 
-exports.sendToIntercom = (req, res) => {
-    res.send('OK');
+const ringcentralService = require('../services/ringcentral.service');
+
+exports.processMessage = (req, res) => {
+    ringcentralService.inboundRequest(req, res);
 };
