@@ -1,7 +1,7 @@
 const SDK = require('ringcentral');
 const config = require('../config');
 
-const intercomService = require('./intercom.services');
+const intercomService = require('./intercom.service');
 
 const rcsdk = new SDK({
     server: config.ringcentral_credentials.server_url,
@@ -28,7 +28,7 @@ const ringcentralLogin = () => {
     });
 };
 
-exports.sendSMS = (toNumber) => {
+exports.sendSMS = (toNumber, messageContent) => {
     platform.post('/account/~/extension/~/sms', {
         from: { phoneNumber: config.ringcentral_credentials.username },
         to: [
@@ -36,7 +36,7 @@ exports.sendSMS = (toNumber) => {
                 phoneNumber: toNumber,
             }
         ],
-        text: 'Message content'
+        text: messageContent
     }).then(response => {
         console.log('SMS sent: ' + response.json().id);
     }).catch(e => {
