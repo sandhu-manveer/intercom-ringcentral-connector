@@ -133,6 +133,7 @@ exports.inboundRequest = (req, res) => {
             res.end();
         } else {
             console.log('Webhook data received');
+            res.statusCode = 200;
             res.send(req.body);
             intercomService.sentToIntercom(req.body);
         }

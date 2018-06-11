@@ -24,4 +24,7 @@ server.listen(config.port, () => {
 });
 
 // login to ringcentral
-ringcentralService.initRingcentral();
+// timeout added to get server running before establishing connection
+setTimeout(() => {
+    ringcentralService.initRingcentral();
+}, 5000);

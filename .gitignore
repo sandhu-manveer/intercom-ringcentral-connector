@@ -75,3 +75,6 @@ typings/
 
 # test scripts
 test.js
+
+# batch files
+*.bat
