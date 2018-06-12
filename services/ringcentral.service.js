@@ -143,14 +143,28 @@ exports.inboundRequest = (req, res) => {
             console.log('Webhook data received');
             res.statusCode = 200;
             res.send(req.body);
-            let rc_body = uploadImagesToS3(req.body);
-            intercomService.sentToIntercom(rc_body);
+            
+            // check if attachment
+            let rc_body = req.body;
+            let is_mms = false;
+            rc_body.body.attachments.forEach(attachment => {
+                if(attachment.type === 'MmsAttachment') is_mms = true;
+            });
+            if(is_mms) {
+                uploadImagesToS3(rc_body, (err, rc_body_img) => {
+                    if (err) console.log(err);
+                    intercomService.sentToIntercom(rc_body_img);
+                });
+            } else {
+                intercomService.sentToIntercom(rc_body);
+            }
         }
     }
 };
 
-const uploadImagesToS3 = (rc_body) => {
-    rc_body.attachments.forEach((attachment, index) => {
+// TODO: safety for multiple attachments
+const uploadImagesToS3 = (rc_body, callback) => {
+    rc_body.body.attachments.forEach((attachment, index) => {
         if(attachment.type === 'MmsAttachment') {
             // get image from rc
             platform.get(attachment.uri)
@@ -169,11 +183,14 @@ const uploadImagesToS3 = (rc_body) => {
                             console.log(err);
                         } else {
                             console.log('Successfully uploaded ' + attachment.uri);
-                            rc_body.attachments[index].uri = config.aws_credentials.s3_url + '/' + attachment.id;
+                            rc_body.body.attachments[index].uri = config.aws_credentials.s3_url + '/' + attachment.id;
+                            callback(null, rc_body);
                         }
                     });
+                })
+                .catch(e => {
+                    callback(e, null);
                 });
         }
     });
-    return rc_body;
 };
