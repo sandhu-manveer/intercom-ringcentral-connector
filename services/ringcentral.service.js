@@ -1,6 +1,14 @@
 const SDK = require('ringcentral');
 const config = require('../config');
 
+const AWS = require('aws-sdk');
+AWS.config.update({
+    accessKeyId: config.aws_credentials.access_key,
+    secretAccessKey: config.aws_credentials.secret_key
+});
+const s3 = new AWS.S3();
+const ringcentral_bucket = config.aws_credentials.ringcentral_image_bucket;
+
 const intercomService = require('./intercom.service');
 
 const rcsdk = new SDK({
@@ -135,7 +143,37 @@ exports.inboundRequest = (req, res) => {
             console.log('Webhook data received');
             res.statusCode = 200;
             res.send(req.body);
-            intercomService.sentToIntercom(req.body);
+            let rc_body = uploadImagesToS3(req.body);
+            intercomService.sentToIntercom(rc_body);
         }
     }
+};
+
+const uploadImagesToS3 = (rc_body) => {
+    rc_body.attachments.forEach((attachment, index) => {
+        if(attachment.type === 'MmsAttachment') {
+            // get image from rc
+            platform.get(attachment.uri)
+                .then(img_res => {
+                    return img_res.response().buffer();
+                })
+                .then(buffer => {
+                    s3.putObject({
+                        Bucket: ringcentral_bucket,
+                        Key: attachment.id,
+                        Body: buffer,
+                        ACL: 'public-read',
+                        ContentType: attachment.contentType
+                    }, function(err) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log('Successfully uploaded ' + attachment.uri);
+                            rc_body.attachments[index].uri = config.aws_credentials.s3_url + '/' + attachment.id;
+                        }
+                    });
+                });
+        }
+    });
+    return rc_body;
 };

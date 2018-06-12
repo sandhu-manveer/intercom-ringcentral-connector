@@ -32,6 +32,15 @@ exports.sentToIntercom = (rc_data) => {
                 },
                 body: rc_data.body.subject
             };
+
+            // add image attachments
+            // can attachment be added to /message endpoint
+            // rc_data.attachments.forEach((attachment) => {
+            //     if(attachment.type === 'MmsAttachment') {
+            //         if (!message.attachment_urls) message.attachment_urls = [];
+            //         message.attachment_urls.push(attachment.uri);
+            //     }
+            // });
                
             client.messages.create(message, (confirm) => {
                 if(confirm.body.type === 'error.list') console.error(confirm.body);
@@ -52,6 +61,16 @@ exports.sentToIntercom = (rc_data) => {
             type: 'user',
             message_type: 'comment'
         };
+
+        // add image attachments
+        if(rc_data.body.attachments) {
+            rc_data.body.attachments.forEach((attachment) => {
+                if(attachment.type === 'MmsAttachment') {
+                    if (!reply.attachment_urls) reply.attachment_urls = [];
+                    reply.attachment_urls.push(attachment.uri);
+                }
+            });
+        }
            
         client.conversations.reply(reply, (confirm) => {
             if(confirm.body.type === 'error.list') console.error(confirm.body);

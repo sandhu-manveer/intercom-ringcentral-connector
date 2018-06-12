@@ -18,5 +18,11 @@ module.exports = {
     },
     intercom_credentials: {
         token: process.env.INTERCOM_TOKEN
+    },
+    aws_credentials: {
+        access_key: process.env.AWS_ACCESS_KEY,
+        secret_key: process.env.AWS_SECRET_KEY,
+        ringcentral_image_bucket: process.env.RINGCENTRAL_IMAGE_BUCKET,
+        s3_url: process.env.S3_URL
     }
 };
