@@ -74,7 +74,7 @@ exports.sentToIntercom = (rc_data) => {
            
         client.conversations.reply(reply, (confirm) => {
             if(confirm.body.type === 'error.list') console.error(confirm.body);
-            console.log('send message with existing message');
+            console.log('send message with existing data');
         });
     }
 };

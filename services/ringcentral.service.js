@@ -30,7 +30,10 @@ const ringcentralLogin = () => {
         password: config.ringcentral_credentials.password
     }).then(() => {
         console.log('Ringcentral login successful');
-        webhookInit();
+        deleteAllSubscriptions()
+            .then(() => {
+                webhookInit();
+            });
     }).catch(e => {
         console.error(e);
     });
@@ -142,7 +145,7 @@ exports.inboundRequest = (req, res) => {
         } else {
             console.log('Webhook data received');
             res.statusCode = 200;
-            res.send(req.body);
+            res.end();
             
             // check if attachment
             let rc_body = req.body;
@@ -178,7 +181,9 @@ const uploadImagesToS3 = (rc_body, callback) => {
                         Body: buffer,
                         ACL: 'public-read',
                         ContentType: attachment.contentType
-                    }, function(err) {
+                    }).on('httpUploadProgress', function(evt) {
+                        console.log('Uploaded :: ' + parseInt((evt.loaded * 100) / evt.total)+'%');
+                    }).send(function(err) {
                         if (err) {
                             console.log(err);
                         } else {
@@ -193,4 +198,21 @@ const uploadImagesToS3 = (rc_body, callback) => {
                 });
         }
     });
+};
+
+const deleteAllSubscriptions = () => {
+    console.log('deleting subscriptions');
+    return platform.get('/subscription')
+        .then(function(res) {
+            let subs_obj = JSON.parse(res._text);
+            subs_obj.records.map(record => {
+                platform.delete('/subscription/' + record.id)
+                    .then(() => {
+                        console.log(record.id + 'deleted');
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    });
+            });
+        });
 };
