@@ -115,13 +115,27 @@ exports.sendToRingcentral = (req, res) => {
 
         inputMessage = inputMessage.replace(/<(?:.|\n)*?>/gm, '');
 
-        if (userId && inputMessage && itemId && assigneeId) { 
-            ringcentralService.sendSMS(userId.replace('+', ''), inputMessage);
+        let imgUrl = null;
+        if (intercomReq.data.item.conversation_parts.conversation_parts.length > 0) imgUrl = getImgUrl(intercomReq);
+
+        if (userId && inputMessage && itemId && assigneeId && imgUrl) {
             res.send(200);
+            ringcentralService.sendMMS(userId.replace('+', ''), inputMessage, imgUrl);
+        } else if (userId && inputMessage && itemId && assigneeId) { 
+            res.send(200);
+            ringcentralService.sendSMS(userId.replace('+', ''), inputMessage);
         } else {
             res.send(500);
         }
     } else {
-        res.send(500);
+        res.send(200);
+    }
+};
+
+const getImgUrl = (intercomObj) => {
+    if (intercomObj.data.item.conversation_parts.conversation_parts[0].attachments.length > 0) {
+        return intercomObj.data.item.conversation_parts.conversation_parts[0].attachments[0].url;
+    } else {
+        return null;
     }
 };

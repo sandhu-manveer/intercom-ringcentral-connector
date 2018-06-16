@@ -1,5 +1,7 @@
 const SDK = require('ringcentral');
 const config = require('../config');
+const FormData = require('form-data');
+const request = require('request');
 
 const AWS = require('aws-sdk');
 AWS.config.update({
@@ -52,6 +54,40 @@ exports.sendSMS = (toNumber, messageContent) => {
         console.log('SMS sent: ' + response.json().id);
     }).catch(e => {
         console.error(e);
+    });
+};
+
+exports.sendMMS = (toNumber, messageContent, imgUrl) => {
+    request(imgUrl, {encoding: null}, function(error, response, intercom_image) {
+        const formData = new FormData();
+        const body = {
+            from: { phoneNumber: config.ringcentral_credentials.username },
+            to: [
+                { phoneNumber: toNumber }
+            ],
+            text: messageContent
+        };
+        formData.append('json', Buffer.from(JSON.stringify(body)), {filename: imgUrl.split('/').slice(-1)[0], contentType: 'application/json'});
+        formData.append('attachment', intercom_image, imgUrl.split('/').slice(-1)[0]);
+        platform.post('/account/~/extension/~/sms', formData).then(response => {
+            console.log('MMS sent: ' + response.json().id);
+        }).catch(e => {
+            console.error(e.message);
+            // sending sms if mms failure
+            platform.post('/account/~/extension/~/sms', {
+                from: { phoneNumber: config.ringcentral_credentials.username },
+                to: [
+                    { 
+                        phoneNumber: toNumber,
+                    }
+                ],
+                text: messageContent
+            }).then(response => {
+                console.log('SMS sent: ' + response.json().id);
+            }).catch(e => {
+                console.error(e);
+            });
+        });
     });
 };
 
