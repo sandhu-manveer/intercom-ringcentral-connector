@@ -41,9 +41,9 @@ const ringcentralLogin = () => {
     });
 };
 
-exports.sendSMS = (toNumber, messageContent) => {
+exports.sendSMS = (fromNumber, toNumber, messageContent) => {
     platform.post('/account/~/extension/~/sms', {
-        from: { phoneNumber: config.ringcentral_credentials.username },
+        from: { phoneNumber: fromNumber },
         to: [
             { 
                 phoneNumber: toNumber,
@@ -57,11 +57,11 @@ exports.sendSMS = (toNumber, messageContent) => {
     });
 };
 
-exports.sendMMS = (toNumber, messageContent, imgUrl) => {
+exports.sendMMS = (fromNumber, toNumber, messageContent, imgUrl) => {
     request(imgUrl, {encoding: null}, function(error, response, intercom_image) {
         const formData = new FormData();
         const body = {
-            from: { phoneNumber: config.ringcentral_credentials.username },
+            from: { phoneNumber: fromNumber },
             to: [
                 { phoneNumber: toNumber }
             ],
@@ -75,7 +75,7 @@ exports.sendMMS = (toNumber, messageContent, imgUrl) => {
             console.error(e.message);
             // sending sms if mms failure
             platform.post('/account/~/extension/~/sms', {
-                from: { phoneNumber: config.ringcentral_credentials.username },
+                from: { phoneNumber: fromNumber },
                 to: [
                     { 
                         phoneNumber: toNumber,

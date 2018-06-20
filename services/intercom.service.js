@@ -10,6 +10,7 @@ var contexts = [];
 exports.sentToIntercom = (rc_data) => {
     // check if first message
     // TODO: cannot find conversationId in instant message event object using from number for now
+    // TODO: correctly create context (use redis)
     const rc_id = rc_data.body.from.phoneNumber;
     if(!contexts[rc_id]) {
         let ringcentralContext = findOrCreateContext(rc_id);
@@ -23,7 +24,7 @@ exports.sentToIntercom = (rc_data) => {
         }, (confirm) => {
             // save intercom user id
             ringcentralContext.intercom_user_id = confirm.body.id;
-            contexts[rc_id] = { intercom_context: {intercom_user_id: confirm.body.id }};
+            contexts[rc_id] = { intercom_context: {intercom_user_id: confirm.body.id, ringcentral_number: rc_data.body.to[0].phoneNumber }};
 
             let message = {
                 from: {
@@ -120,10 +121,10 @@ exports.sendToRingcentral = (req, res) => {
 
         if (userId && inputMessage && itemId && assigneeId && imgUrl) {
             res.send(200);
-            ringcentralService.sendMMS(userId.replace('+', ''), inputMessage, imgUrl);
+            ringcentralService.sendMMS(contexts[userId].intercom_context.ringcentral_number, userId.replace('+', ''), inputMessage, imgUrl);
         } else if (userId && inputMessage && itemId && assigneeId) { 
             res.send(200);
-            ringcentralService.sendSMS(userId.replace('+', ''), inputMessage);
+            ringcentralService.sendSMS(contexts[userId].intercom_context.ringcentral_number, userId.replace('+', ''), inputMessage);
         } else {
             res.send(500);
         }
