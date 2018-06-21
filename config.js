@@ -14,7 +14,8 @@ module.exports = {
         delivery_mode_transport_type: process.env.DELIVERY_MODE_TRANSPORT_TYPE,
         delivery_mode_address: process.env.DELIVERY_MODE_ADDRESS,
         extensions_per_page: process.env.EXTENSIONS_PER_PAGE,
-        webhook_token: process.env.WEBHOOK_TOKEN
+        webhook_token: process.env.WEBHOOK_TOKEN,
+        phone_numbers: process.env.RINGCENTRAL_NUMBERS.split(' ')
     },
     intercom_credentials: {
         token: process.env.INTERCOM_TOKEN

@@ -150,7 +150,10 @@ const createEventFilter = (extensions) => {
     var _eventFilters = [];
     for(var i = 0; i < extensions.length; i++) {
         var extension = extensions[i];
+        // filter by extension
+        // if(extension.extensionNumber === config.ringcentral_credentials.extension) {
         _eventFilters.push(generateInstantMessageEventFilter(extension));
+        // }
     }
     return _eventFilters;
 };
@@ -186,16 +189,20 @@ exports.inboundRequest = (req, res) => {
             // check if attachment
             let rc_body = req.body;
             let is_mms = false;
-            rc_body.body.attachments.forEach(attachment => {
-                if(attachment.type === 'MmsAttachment') is_mms = true;
-            });
-            if(is_mms) {
-                uploadImagesToS3(rc_body, (err, rc_body_img) => {
-                    if (err) console.log(err);
-                    intercomService.sentToIntercom(rc_body_img);
+
+            // check if message to correct number
+            if (config.ringcentral_credentials.phone_numbers.indexOf(rc_body.body.to[0].phoneNumber) > -1) {
+                rc_body.body.attachments.forEach(attachment => {
+                    if(attachment.type === 'MmsAttachment') is_mms = true;
                 });
-            } else {
-                intercomService.sentToIntercom(rc_body);
+                if(is_mms) {
+                    uploadImagesToS3(rc_body, (err, rc_body_img) => {
+                        if (err) console.log(err);
+                        intercomService.sentToIntercom(rc_body_img);
+                    });
+                } else {
+                    intercomService.sentToIntercom(rc_body);
+                }
             }
         }
     }
