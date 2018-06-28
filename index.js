@@ -28,3 +28,5 @@ server.listen(config.port, () => {
 setTimeout(() => {
     ringcentralService.initRingcentral();
 }, 5000);
+
+module.exports = server;
